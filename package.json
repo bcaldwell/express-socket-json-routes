@@ -1,0 +1,18 @@
+{
+  "name": "express-socket-json-routes",
+  "version": "0.0.1",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Benjamin Caldwell",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.13.0",
+    "socket.io": "^1.3.5"
+  },
+  "dependencies": {
+    "lodash": "^3.9.3"
+  }
+}
