@@ -3,17 +3,18 @@ var socket = require('socket.io');
 var routes = require('./index.js');
 
 var app = express();
-var io = socket();
+var server = require('http').Server(app);
+var io = socket(server);
 
 var config = {
   // baseUrl: '',
-  vars: {
-    testvar: 'hello'
-  },
+  // vars: {
+  //   testvar: 'hello'
+  // },
   routes: [
     {
       type: "get",
-      route: "test",
+      uri: "test",
       handler: function (req, res){
         res.send ('hello');
       },
@@ -21,7 +22,7 @@ var config = {
     },
     {
       type: "get",
-      route: "hello",
+      uri: "hello",
       handler: function (req, res){
         res.send ('sup dawg');
       },
@@ -30,8 +31,8 @@ var config = {
   ]
 };
 
-routes(config, app);
-// routes(config, app, io);
+// routes(config, app);
+routes(config, app, io);
 
 app.use ('/api', routes(config));
 
@@ -41,6 +42,6 @@ app.get('/', function(req, res) {
 
 /* istanbul ignore next */
 if (!module.parent) {
-  app.listen(3000);
+  server.listen(3000);
   console.log('Express started on port 3000');
 }
