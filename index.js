@@ -1,4 +1,10 @@
+//TODO
+// - socket.io middleware mode
+// - socket.io res, req objects
+// - Method to get array of routes
+
 var _ = require('lodash');
+var util = require('util');
 module.exports = function(config, appPassed, socketPassed) {
 
   var app = null,
@@ -33,29 +39,56 @@ module.exports = function(config, appPassed, socketPassed) {
   console.log('express: ' + mode.express + "\nsocket: " + mode.socket);
 
   if (_.isArray(config.routes)) {
-      _.each(config.routes, function(route) {
-        var type = route.type.toLowerCase();
-        var uri = (config.baseUrl ? config.baseUrl : "") + '/' + route.uri;
-        if (mode.express){
-          if (route.middleware){
-            app[type](uri, route.middleware, route.handler);
-          }else {
-            app[type](uri, route.handler);
-          }
+    _.each(config.routes, function(route) {
+      var type = route.type.toLowerCase();
+      var uri = (config.baseUrl ? config.baseUrl : "") + '/' + route.uri;
+      if (mode.express) {
+        if (route.middleware) {
+          app[type](uri, route.middleware, route.handler);
+        } else {
+          app[type](uri, route.handler);
         }
+      }
 
-        if (mode.socket){
-          io.on('connection', function (socket) {
-            console.log (uri)
-            socket.on(uri.substr(1), function (data) {
-              console.log(uri)
-              console.log (data);
+      if (mode.socket) {
+        var socketUri = uri.substr(1) + (type !== 'all' ? '/' + type : '');
+        console.log(socketUri);
+        io.on('connection', function(socket) {
+          socket.on(socketUri, function(data) {
+            console.log(socketUri);
+            route.handler({
+              socket: socket,
+              routeType: 'socket',
+              socketRoute: true,
+              expressRoute: false,
+              baseUrl: socketUri,
+              body: data,
+              originalUrl: socketUri
+            }, {
+              send: function(data) {
+                socketSend(socket, socketUri, data);
+              },
+              json: function(data) {
+                data.contentType = "JSON";
+                socketSend(socket, socketUri, data);
+              },
+              render: function(data) {
+                socketSend(socket, socketUri, data);
+              },
+              end: function() {},
+              sendFile: function() {
+                unsupportedMethod('sendFile');
+              },
+              redirect: function() {
+                unsupportedMethod('sendFile');
+              }
             });
           });
-        }
-      });
+        });
+      }
+    });
   } else {
-    console.log ('Express-socket-json-route: No routes were passed in');
+    console.log('Express-socket-json-route: No routes were passed in');
   }
 
   if (mode.middleware) {
@@ -74,4 +107,13 @@ var instanceofSocket = function(io) {
   var result = Boolean(io) && Boolean(io.on) && Boolean(io.serveClient) && Boolean(io.attach);
 
   return result;
+};
+
+var socketSend = function(socket, uri, data) {
+  console.log('sending: ' + data);
+  socket.emit(uri, data);
+};
+
+var unsupportedMethod = function(method) {
+  console.log('Express-socket-json-route: Method \'' + method + '\'is not supported');
 };

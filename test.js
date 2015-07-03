@@ -21,10 +21,10 @@ var config = {
       middleware: []
     },
     {
-      type: "get",
+      type: "all",
       uri: "hello",
       handler: function (req, res){
-        res.send ('sup dawg');
+        res.json ({'sup dawg': false});
       },
       middleware: []
     }
