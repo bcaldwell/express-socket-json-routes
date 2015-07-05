@@ -1,8 +1,8 @@
 {
   "name": "express-socket-json-routes",
   "version": "0.0.1",
-  "description": "",
-  "main": "test.js",
+  "description": "Currently in development",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,5 +14,18 @@
   },
   "dependencies": {
     "lodash": "^3.9.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benjamincaldwell/express-socket-json-routes.git"
+  },
+  "keywords": [
+    "express",
+    "socket.io",
+    "json"
+  ],
+  "bugs": {
+    "url": "https://github.com/benjamincaldwell/express-socket-json-routes/issues"
+  },
+  "homepage": "https://github.com/benjamincaldwell/express-socket-json-routes#readme"
 }
