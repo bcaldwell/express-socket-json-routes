@@ -42,16 +42,23 @@ module.exports = function(config, appPassed, socketPassed) {
     _.each(config.routes, function(route) {
       var type = route.type.toLowerCase();
       var uri = (config.baseUrl ? config.baseUrl : "") + '/' + route.uri;
+      var expressUri = (route.expressUri? route.expressUri:(route.restUri?route.restUri:uri));
+      //uri should not start with a '/' but expressUri should start with a '/'
+      if (uri[0] === '/')
+        uri = uri.substr(1);
+      if (expressUri[0] !== '/')
+        expressUri = '/' + expressUri;
+        
       if (mode.express) {
         if (route.middleware) {
-          app[type](uri, route.middleware, route.handler);
+          app[type](expressUri, route.middleware, route.handler);
         } else {
-          app[type](uri, route.handler);
+          app[type](expressUri, route.handler);
         }
       }
 
       if (mode.socket) {
-        var socketUri = uri.substr(1) + (type !== 'all' ? '/' + type : '');
+        var socketUri = (route.socketUri? route.socketUri: uri + (type !== 'all' ? '/' + type : ''));
         console.log(socketUri);
         io.on('connection', function(socket) {
           socket.on(socketUri, function(data) {

@@ -7,7 +7,7 @@ var server = require('http').Server(app);
 var io = socket(server);
 
 var config = {
-  // baseUrl: '',
+  // baseUrl: 'test',
   // vars: {
   //   testvar: 'hello'
   // },
@@ -25,6 +25,16 @@ var config = {
       uri: "hello",
       handler: function (req, res){
         res.json ({'sup dawg': false});
+      },
+      middleware: []
+    },
+    {
+      type: "all",
+      uri: "byebye",
+      socketUri: "bye",
+      expressUri: 'sup',
+      handler: function (req, res){
+        res.send ('bye socket route but not rest route?');
       },
       middleware: []
     }
