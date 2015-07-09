@@ -7,10 +7,14 @@ var server = require('http').Server(app);
 var io = socket(server);
 
 var config = {
-  // baseUrl: 'test',
+  // baseUri: 'tesast',
+  // expressUri: 'rest',
+  // restUri: 'rest',
+  // socketUri: 'socket',
   // vars: {
   //   testvar: 'hello'
   // },
+  // routesListRoute: 'express-socket-json-routes'
   routes: [
     {
       type: "get",
@@ -44,7 +48,7 @@ var config = {
 // routes(config, app);
 routes(config, app, io);
 
-app.use ('/api', routes(config));
+// app.use ('/api', routes(config));
 
 app.get('/', function(req, res) {
   res.send('Hello form root route.');

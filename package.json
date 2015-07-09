@@ -1,6 +1,6 @@
 {
   "name": "express-socket-json-routes",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Allows for express.js and socket.io routes to be created using a signle JSON object",
   "main": "index.js",
   "scripts": {

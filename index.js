@@ -36,19 +36,31 @@ module.exports = function(config, appPassed, socketPassed) {
   //create global vars var
   var vars = config.vars ? config.vars : null;
 
-  console.log('express: ' + mode.express + "\nsocket: " + mode.socket);
-
   if (_.isArray(config.routes)) {
+    //create base uri
+    var baseUri = {};
+    baseUri.base = (config.baseUrl ? config.baseUrl : "");
+    sanitizeRoute(baseUri);
+    baseUri.express = (config.expressUri ? config.expressUri : (config.restUri ? config.restUri : baseUri.base));
+    baseUri.socket = (config.socketUri ? config.expressUri : baseUri.base);
+    sanitizeRoute(baseUri.express);
+    sanitizeRoute(baseUri.socket);
+
+    var routeList = {
+      express: [],
+      socket: []
+    };
+
+    var routesKeys = Object.keys(config.routes);
     _.each(config.routes, function(route) {
       var type = route.type.toLowerCase();
-      var uri = (config.baseUrl ? config.baseUrl : "") + '/' + route.uri;
-      var expressUri = (route.expressUri? route.expressUri:(route.restUri?route.restUri:uri));
-      //uri should not start with a '/' but expressUri should start with a '/'
-      if (uri[0] === '/')
-        uri = uri.substr(1);
-      if (expressUri[0] !== '/')
-        expressUri = '/' + expressUri;
-        
+      //create base uri, it should not start with a '/'
+      var expressUri = (route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri));
+      sanitizeRoute(expressUri);
+
+      // append base url to the expressUri
+      expressUri = (baseUri.express ? '/' + baseUri.express : '') + '/' + expressUri;
+
       if (mode.express) {
         if (route.middleware) {
           app[type](expressUri, route.middleware, route.handler);
@@ -57,10 +69,17 @@ module.exports = function(config, appPassed, socketPassed) {
         }
       }
 
+      routeList.express.push(expressUri);
+
       if (mode.socket) {
-        var socketUri = (route.socketUri? route.socketUri: uri + (type !== 'all' ? '/' + type : ''));
-        console.log(socketUri);
+        //socketUri: baseuri/ + uri/ + route type
+        var socketUri = (route.socketUri ? route.socketUri : route.uri + (type !== 'all' ? '/' + type : ''));
+        sanitizeRoute(socketUri);
+        socketUri = (baseUri.socket ? baseUri.socket + '/' : '') + socketUri;
+
         io.on('connection', function(socket) {
+          routeList.socket.push(socketUri);
+
           socket.on(socketUri, function(data) {
             console.log(socketUri);
             route.handler({
@@ -91,12 +110,22 @@ module.exports = function(config, appPassed, socketPassed) {
               }
             });
           });
+          //create route to view current routes
+          if (routeList.socket.length === routesKeys.length) {
+            socket.on((config.routesListRoute?config.routesListRoute:'routes'), function() {
+              socketSend(socket, 'routes', routeList);
+            });
+          }
         });
       }
+    });
+    app.get('/' + (config.routesListRoute?sanitizeRoute(config.routesListRoute):'routes'), function(req, res) {
+      res.json(routeList);
     });
   } else {
     console.log('Express-socket-json-route: No routes were passed in');
   }
+
 
   if (mode.middleware) {
     return app;
@@ -123,4 +152,10 @@ var socketSend = function(socket, uri, data) {
 
 var unsupportedMethod = function(method) {
   console.log('Express-socket-json-route: Method \'' + method + '\'is not supported');
+};
+
+var sanitizeRoute = function(route) {
+  if (route && route[0] && route[0] === '/')
+    return route.substr(1);
+  return route;
 };
