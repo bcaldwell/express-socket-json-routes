@@ -9,10 +9,10 @@
   "author": "Benjamin Caldwell",
   "license": "MIT",
   "devDependencies": {
-    "express": "^4.13.0",
     "socket.io": "^1.3.5"
   },
   "dependencies": {
+    "express": "^4.13.0",
     "lodash": "^3.9.3"
   },
   "repository": {
