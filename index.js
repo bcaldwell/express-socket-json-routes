@@ -34,7 +34,7 @@ module.exports = function(config, appPassed, socketPassed) {
     app = express.Router();
   }
   //create global vars var
-  var vars = config.vars ? config.vars : null;
+  var vars = config.vars ? config.vars : {};
 
   if (_.isArray(config.routes)) {
     //create base uri
@@ -63,7 +63,11 @@ module.exports = function(config, appPassed, socketPassed) {
 
       if (mode.express) {
         if (route.middleware) {
-          app[type](expressUri, route.middleware, route.handler);
+          app[type](expressUri, route.middleware, function(req,res){
+            req.vars = vars;
+            route.handler(req, res);
+            }
+            );
         } else {
           app[type](expressUri, route.handler);
         }

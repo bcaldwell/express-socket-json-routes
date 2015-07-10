@@ -11,15 +11,16 @@ var config = {
   // expressUri: 'rest',
   // restUri: 'rest',
   // socketUri: 'socket',
-  // vars: {
-  //   testvar: 'hello'
-  // },
+  vars: {
+    testvar: 'hello'
+  },
   // routesListRoute: 'express-socket-json-routes'
   routes: [
     {
       type: "get",
       uri: "test",
       handler: function (req, res){
+        console.log (req.vars);
         res.send ('hello');
       },
       middleware: []
