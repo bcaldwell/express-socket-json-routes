@@ -2,7 +2,7 @@
   "name": "express-socket-json-routes",
   "version": "0.0.4",
   "description": "Allows for express.js and socket.io routes to be created using a signle JSON object",
-  "main": "index.js,
+  "main": "index.js",
 "scripts": {
    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha -- -R spec ./test/*",
    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
