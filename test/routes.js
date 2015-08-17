@@ -1,9 +1,22 @@
 var test = require('unit.js');
-var example = 'hello';
-console.log (example);
-test.string(example);
-test.string('hello');
-test.object(user).hasProperty('email');
-test.array(fruit).hasValue('kiwi');
-test.assert(myVar === true);
-test.bool(myVar).isTrue();
+// test 'string' type
+test.should('foobar').be.type('string');
+// then that actual value '==' expected value
+test.should('foobar' == 'foobar').be.ok;
+// then that actual value '===' expected value
+test.should('foobar').be.equal('foobar');
+// Should.js library (alternative style)
+var should = test.should;
+// test 'string' type
+('foobar').should.be.type('string');
+// then that actual value '==' expected value
+('foobar' == 'foobar').should.be.ok;
+// then that actual value '===' expected value
+('foobar').should.be.equal('foobar');
+// this shortcut works also like this
+// test 'string' type
+should('foobar').be.type('string');
+// then that actual value '==' expected value
+should('foobar' == 'foobar').be.ok;
+// then that actual value '===' expected value
+should('foobar').be.equal('foobar');
