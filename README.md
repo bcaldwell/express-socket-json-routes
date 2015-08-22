@@ -1,7 +1,7 @@
 # express-socket-json-routes
 [![npm version](https://badge.fury.io/js/express-socket-json-routes.svg)](http://badge.fury.io/js/express-socket-json-routes)
 [![dependencies](https://david-dm.org/benjamincaldwell/express-socket-json-routes.svg)](https://david-dm.org/benjamincaldwell/express-socket-json-routes.svg)
-(https://david-dm.org/benjamincaldwell/express-socket-json-routes.svg)
+[![Build Status](https://travis-ci.org/benjamincaldwell/express-socket-json-routes.svg?branch=master)](https://travis-ci.org/benjamincaldwell/express-socket-json-routes)
 [![Coverage Status](https://coveralls.io/repos/benjamincaldwell/express-socket-json-routes/badge.svg?branch=master&service=github)](https://coveralls.io/github/benjamincaldwell/express-socket-json-routes?branch=master)
 
 express-socket-json-routes makes it easy to create both express.js and socket.io routes simultaneously using a single json configuration object.
