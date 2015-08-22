@@ -4,8 +4,8 @@
   "description": "Allows for express.js and socket.io routes to be created using a signle JSON object",
   "main": "index.js",
 "scripts": {
-   "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha -- -R spec ./test/*",
-   "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
+   "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha --R spec ./test/*",
+   "coverage": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
  },
   "author": "Benjamin Caldwell",
   "license": "MIT",

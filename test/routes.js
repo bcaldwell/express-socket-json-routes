@@ -1,5 +1,13 @@
 var test = require('unit.js');
+var should = test.should;
+
+var express = require('express');
+var socket = require('socket.io');
+var routes = require('.././index.js');
+
 // test 'string' type
-test.should('foobar').be.type('string');
-// then that actual value '==' expected value
-test.should('foobar' == 'foobar').be.ok;
+describe('Testing', function() {
+  it('be awesome', function(){
+    ('foobar').should.be.type('string');
+  });
+});
