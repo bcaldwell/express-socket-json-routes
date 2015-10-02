@@ -19,17 +19,17 @@ var config = {
     {
       type: "get",
       uri: "test",
-      handler: function (req, res){
-        console.log (req.vars);
-        res.send ('hello');
+      handler: function (req, res) {
+        console.log(req.vars);
+        res.send('hello');
       },
       middleware: []
     },
     {
       type: "all",
       uri: "hello",
-      handler: function (req, res){
-        res.json ({'sup dawg': false});
+      handler: function (req, res) {
+        res.json({ 'sup dawg': false });
       },
       middleware: []
     },
@@ -38,8 +38,8 @@ var config = {
       uri: "byebye",
       socketUri: "bye",
       expressUri: 'sup',
-      handler: function (req, res){
-        res.send ('bye socket route but not rest route?');
+      handler: function (req, res) {
+        res.send('bye socket route but not rest route?');
       },
       middleware: []
     }
@@ -51,7 +51,7 @@ routes(config, app, io);
 
 // app.use ('/api', routes(config));
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
   res.send('Hello form root route.');
 });
 

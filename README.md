@@ -40,13 +40,13 @@ var routes = {
 };
 
 //create both express and socket routes
-jsonRoutes (routes, express, socket);
+jsonRoutes (routes, express, io);
 
 //create only express routes
 jsonRoutes (routes, express);
 
 //create only socket routes
-jsonRoutes (routes, socket);
+jsonRoutes (routes, io);
 
 //use as expres middleware
 app.use ('/api', jsonRoutes)
