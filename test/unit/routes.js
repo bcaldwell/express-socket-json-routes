@@ -5,7 +5,7 @@ var should = test.should;
 
 var express = require("express");
 var socket = require("socket.io");
-var routes = require(".././index.js");
+var routes = require("../.././index.js");
 
 var test1 = require("./testconfigs/test1.js");
 
@@ -20,16 +20,31 @@ if (!module.parent) {
     console.log("Express started on port 3000");
 }
 
-describe('GET /users', function(){
-  it('respond with json', function(done){
+var route200 = function (route){
+  it(route, function(done){
     request(app)
-      .get('/test')
+      .get(route)
       .expect(200)
       .end(function(err, res){
         if (err) return done(err);
         done();
       });
   });
+};
+
+describe("Set up should work", function(){
+  it("should require a json config", function(){
+    routes(null, app, io).should.equal(false);
+  });
+  it ("should return a router if express not passed in", function(){
+    routes(test1);
+  });
+});
+
+describe("Only configured routes should return 200 code", function(){
+  route200("/test");
+  route200("/hello");
+  route200("/sup");
 });
 
 // test "string" type

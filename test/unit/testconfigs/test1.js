@@ -29,7 +29,7 @@ module.exports  = {
       type: "all",
       uri: "byebye",
       socketUri: "bye",
-      expressUri: "/sup",
+      expressUri: "sup",
       handler: function (req, res){
         res.send ('bye socket route but not rest route?');
       },
