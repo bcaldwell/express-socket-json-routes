@@ -3,11 +3,13 @@ var request = require("supertest");
 
 var should = test.should;
 
-var express = require("express");
-var socket = require("socket.io");
-var routes = require("../.././index.js");
+//server setup stuff
+var routes = require("../../index.js");
 
 var test1 = require("./testconfigs/test1.js");
+
+var express = require("express");
+var socket = require("socket.io");
 
 var app = express();
 var server = require("http").Server(app);
@@ -15,21 +17,23 @@ var io = socket(server);
 
 routes(test1, app, io);
 
-if (!module.parent) {
+//if (!module.parent) {
   server.listen(3000);
   console.log("Express started on port 3000");
-}
+//}
+//////////////////////////////////////////////////
 
-var ioClient = require("socket.io-client");
+var socketClient = require('socket.io-client');
 
-var socketURL = "http://127.0.0.1:3000";
-
-var options = {
-  transports: ["websocket"],
-  "force new connection": true
+var socketURL = "http://localhost:3000";
+//var client1 = require('socket.io-client')('http://localhost:3000');
+var socketOptions ={
+  transports: ['websocket'],
+  'force new connection': true
 };
 
-var client1 = ioClient.connect(socketURL, options);
+
+var client = socketClient(socketURL, socketOptions);
 
 var route200 = function(route) {
   it(route, function(done) {
@@ -45,13 +49,11 @@ var route200 = function(route) {
 
 var socket200 = function(route) {
   it(route, function(done) {
-    client1.once("connect", function() {
-      client1.emit(route, {});
-      client1.once(route, function(data) {
+      client.emit(route, {});
+      client.once(route, function(data) {
         data.should.exist;
         done();
       });
-    });
   });
 };
 
@@ -62,6 +64,11 @@ describe("Set up should work", function() {
   it("should return a router if express not passed in", function() {
     routes(test1);
   });
+  it ("Should connect to the socket", function(done){
+    client.once("connect", function(){
+      done()
+    })
+  })
 });
 
 describe("Only configured routes should return 200 code (express)", function() {
@@ -71,9 +78,9 @@ describe("Only configured routes should return 200 code (express)", function() {
 });
 
 describe("Only configured routes should return 200 code (socket)", function() {
-  socket200("/test");
-  socket200("/hello");
-  socket200("/sup");
+  socket200("test/get");
+  socket200("hello");
+  socket200("bye");
 });
 
 // test "string" type

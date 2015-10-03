@@ -23,9 +23,7 @@ module.exports = function(config, appPassed, socketPassed) {
     middleware: !Boolean(app)
   };
 
-  /* istanbul ignore if */
   if (process.env.NODE_ENV === "test") {
-    console.log("testing");
     this.app = app;
     this.io = io;
     this.mode = mode;
@@ -92,7 +90,6 @@ module.exports = function(config, appPassed, socketPassed) {
           routeList.socket.push(socketUri);
 
           socket.on(socketUri, function(data) {
-            console.log(socketUri);
             route.handler({
               socket: socket,
               routeType: "socket",
@@ -146,15 +143,11 @@ module.exports = function(config, appPassed, socketPassed) {
 
 var instanceofExpress = function(app) {
   //check for var/ functions that express apps/routers should have
-  var result = Boolean(app) && Boolean(app.get) && Boolean(app.post) && Boolean(app.put) && Boolean(app.route) && Boolean(app.all) && Boolean(app.param);
-
-  return result;
+  return Boolean(app) && Boolean(app.get) && Boolean(app.post) && Boolean(app.put) && Boolean(app.route) && Boolean(app.all) && Boolean(app.param);
 };
 
 var instanceofSocket = function(io) {
-  var result = Boolean(io) && Boolean(io.on) && Boolean(io.serveClient) && Boolean(io.attach);
-
-  return result;
+  return Boolean(io) && Boolean(io.on) && Boolean(io.serveClient) && Boolean(io.attach);
 };
 
 var socketSend = function(socket, uri, data) {
