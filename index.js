@@ -63,7 +63,7 @@ module.exports = function(config, appPassed, socketPassed) {
     _.each(config.routes, function(route) {
       var type = route.type.toLowerCase();
       //create base uri, it should not start with a "/"
-      var expressUri = sanitizeRoute(route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri));
+      var expressUri = route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri);
       sanitizeRoute(expressUri);
 
       // append base url to the expressUri
@@ -168,6 +168,7 @@ var unsupportedMethod = function(method) {
 
 var sanitizeRoute = function(route) {
   if (route && route[0] && route[0] === "/"){
+    console.log (route);
     return route.substr(1);
   }
   return route;

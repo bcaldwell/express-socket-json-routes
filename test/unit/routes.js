@@ -16,35 +16,64 @@ var io = socket(server);
 routes(test1, app, io);
 
 if (!module.parent) {
-    server.listen(3000);
-    console.log("Express started on port 3000");
+  server.listen(3000);
+  console.log("Express started on port 3000");
 }
 
-var route200 = function (route){
-  it(route, function(done){
+var ioClient = require("socket.io-client");
+
+var socketURL = "http://127.0.0.1:3000";
+
+var options = {
+  transports: ["websocket"],
+  "force new connection": true
+};
+
+var client1 = ioClient.connect(socketURL, options);
+
+var route200 = function(route) {
+  it(route, function(done) {
     request(app)
       .get(route)
       .expect(200)
-      .end(function(err, res){
+      .end(function(err, res) {
         if (err) return done(err);
         done();
       });
   });
 };
 
-describe("Set up should work", function(){
-  it("should require a json config", function(){
+var socket200 = function(route) {
+  it(route, function(done) {
+    client1.once("connect", function() {
+      client1.emit(route, {});
+      client1.once(route, function(data) {
+        data.should.exist;
+        done();
+      });
+    });
+  });
+};
+
+describe("Set up should work", function() {
+  it("should require a json config", function() {
     routes(null, app, io).should.equal(false);
   });
-  it ("should return a router if express not passed in", function(){
+  it("should return a router if express not passed in", function() {
     routes(test1);
   });
 });
 
-describe("Only configured routes should return 200 code", function(){
+describe("Only configured routes should return 200 code (express)", function() {
   route200("/test");
   route200("/hello");
   route200("/sup");
+});
+
+describe("Only configured routes should return 200 code (socket)", function() {
+  socket200("/test");
+  socket200("/hello");
+  socket200("/sup");
 });
 
 // test "string" type
