@@ -15,6 +15,8 @@ var app = express();
 var server = require("http").Server(app);
 var io = socket(server);
 
+app.engine('html', require('ejs').renderFile);
+
 routes(test1, app, io);
 
 //if (!module.parent) {
@@ -35,11 +37,12 @@ var socketOptions ={
 
 var client = socketClient(socketURL, socketOptions);
 
-var route200 = function(route) {
+var routeCode = function(route, status) {
+  status = (status? status:200);
   it(route, function(done) {
     request(app)
       .get(route)
-      .expect(200)
+      .expect(status)
       .end(function(err, res) {
         if (err) return done(err);
         done();
@@ -47,7 +50,7 @@ var route200 = function(route) {
   });
 };
 
-var socket200 = function(route) {
+var socketReturn = function(route) {
   it(route, function(done) {
       client.emit(route, {});
       client.once(route, function(data) {
@@ -65,6 +68,9 @@ describe("Set up should work", function() {
     routes(test1);
   });
   it ("Should connect to the socket", function(done){
+    if (client.connected){
+      done()
+    }
     client.once("connect", function(){
       done()
     })
@@ -72,15 +78,21 @@ describe("Set up should work", function() {
 });
 
 describe("Only configured routes should return 200 code (express)", function() {
-  route200("/test");
-  route200("/hello");
-  route200("/sup");
+  routeCode("/test");
+  routeCode("/hello");
+  routeCode("/sup");
+  routeCode("/render");
+  routeCode("/sendfile");
+  routeCode("/google", 302);
 });
 
 describe("Only configured routes should return 200 code (socket)", function() {
-  socket200("test/get");
-  socket200("hello");
-  socket200("bye");
+  socketReturn("test/get");
+  socketReturn("hello");
+  socketReturn("bye");
+  socketReturn("render");
+  socketReturn("sendfile");
+  socketReturn("google");
 });
 
 // test "string" type

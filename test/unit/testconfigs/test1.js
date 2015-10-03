@@ -1,3 +1,4 @@
+var path = require('path')
 module.exports  = {
   // baseUri: 'tesast',
   // expressUri: 'rest',
@@ -24,6 +25,27 @@ module.exports  = {
         res.json ({'sup dawg': false});
       },
       middleware: []
+    },
+    {
+      type: "all",
+      uri: "render",
+      handler: function (req, res){
+        res.render (path.resolve(__dirname + "/../../assets/example.html"));
+      },
+    },
+    {
+      type: "all",
+      uri: "google",
+      handler: function (req, res){
+        res.redirect ("https://www.google.ca/");
+      },
+    },
+    {
+      type: "all",
+      uri: "sendfile",
+      handler: function (req, res){
+        res.sendFile (path.resolve(__dirname + "/../../assets/openCoverage.js"));
+      }
     },
     {
       type: "all",

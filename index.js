@@ -87,7 +87,7 @@ module.exports = function(config, appPassed, socketPassed) {
         socketUri = (baseUri.socket ? baseUri.socket + "/" : "") + socketUri;
 
         io.on("connection", function(socket) {
-          routeList.socket.push(socketUri);
+          routeList.socket.indexOf(socketUri) < 0? routeList.socket.push(socketUri):null;
 
           socket.on(socketUri, function(data) {
             route.handler({
@@ -112,9 +112,11 @@ module.exports = function(config, appPassed, socketPassed) {
               end: function() {},
               sendFile: function() {
                 unsupportedMethod("sendFile");
+                socketSend(socket, socketUri, {});
               },
               redirect: function() {
-                unsupportedMethod("sendFile");
+                unsupportedMethod("redirect");
+                socketSend(socket, socketUri, {});
               }
             });
           });
@@ -151,7 +153,7 @@ var instanceofSocket = function(io) {
 };
 
 var socketSend = function(socket, uri, data) {
-  console.log("sending: " + data);
+  //console.log("sending: " + data);
   socket.emit(uri, data);
 };
 
@@ -161,7 +163,6 @@ var unsupportedMethod = function(method) {
 
 var sanitizeRoute = function(route) {
   if (route && route[0] && route[0] === "/"){
-    console.log (route);
     return route.substr(1);
   }
   return route;
