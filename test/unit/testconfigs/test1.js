@@ -31,7 +31,7 @@ module.exports  = {
       uri: "render",
       handler: function (req, res){
         res.render (path.resolve(__dirname + "/../../assets/example.html"));
-      },
+      }
     },
     {
       type: "all",

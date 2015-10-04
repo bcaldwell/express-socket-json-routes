@@ -1,50 +1,12 @@
 var express = require('express');
 var socket = require('socket.io');
-var routes = require('./index.js');
+var routes = require('../index.js');
 
 var app = express();
 var server = require('http').Server(app);
 var io = socket(server);
 
-var config = {
-  // baseUri: 'tesast',
-  // expressUri: 'rest',
-  // restUri: 'rest',
-  // socketUri: 'socket',
-  vars: {
-    testvar: 'hello'
-  },
-  // routesListRoute: 'express-socket-json-routes'
-  routes: [
-    {
-      type: "get",
-      uri: "test",
-      handler: function (req, res) {
-        console.log(req.vars);
-        res.send('hello');
-      },
-      middleware: []
-    },
-    {
-      type: "all",
-      uri: "hello",
-      handler: function (req, res) {
-        res.json({ 'sup dawg': false });
-      },
-      middleware: []
-    },
-    {
-      type: "all",
-      uri: "byebye",
-      socketUri: "bye",
-      expressUri: 'sup',
-      handler: function (req, res) {
-        res.send('bye socket route but not rest route?');
-      },
-      middleware: []
-    }
-  ]
-};
+var config = require("./unit/testconfigs/test1.js");
 
 // routes(config, app);
 routes(config, app, io);
