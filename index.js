@@ -46,11 +46,11 @@ module.exports = function(config, appPassed, socketPassed) {
     //create base uri
     var baseUri = {};
     baseUri.base = (config.baseUrl ? config.baseUrl : "");
-    sanitizeRoute(baseUri);
+    baseUri.base = sanitizeRoute(baseUri.base);
     baseUri.express = (config.expressUri ? config.expressUri : (config.restUri ? config.restUri : baseUri.base));
     baseUri.socket = (config.socketUri ? config.expressUri : baseUri.base);
-    sanitizeRoute(baseUri.express);
-    sanitizeRoute(baseUri.socket);
+    baseUri.express = sanitizeRoute(baseUri.express);
+    baseUri.socket = sanitizeRoute(baseUri.socket);
 
     var routeList = {
       express: [],
@@ -62,7 +62,7 @@ module.exports = function(config, appPassed, socketPassed) {
       var type = route.type.toLowerCase();
       //create base uri, it should not start with a "/"
       var expressUri = route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri);
-      sanitizeRoute(expressUri);
+      expressUri = sanitizeRoute(expressUri);
 
       // append base url to the expressUri
       expressUri = (baseUri.express ? "/" + baseUri.express : "") + "/" + expressUri;
@@ -83,7 +83,6 @@ module.exports = function(config, appPassed, socketPassed) {
       if (mode.socket) {
         //socketUri: baseuri/ + uri/ + route type
         var socketUri = sanitizeRoute(route.socketUri ? route.socketUri : route.uri + (type !== "all" ? "/" + type : ""));
-        sanitizeRoute(socketUri);
         socketUri = (baseUri.socket ? baseUri.socket + "/" : "") + socketUri;
 
         io.on("connection", function(socket) {
@@ -134,6 +133,7 @@ module.exports = function(config, appPassed, socketPassed) {
     });
   } else {
     console.log("Express-socket-json-route: No routes were passed in");
+    return false;
   }
 
 

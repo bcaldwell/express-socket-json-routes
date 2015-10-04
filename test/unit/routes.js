@@ -64,6 +64,9 @@ describe("Set up should work", function() {
   it("should require a json config", function() {
     routes(null, app, io).should.equal(false);
   });
+  it("should require a json config with a routes array", function() {
+    routes({}, app, io).should.equal(false);
+  });
   it("should return a router if express not passed in", function() {
     routes(test1);
   });
@@ -75,6 +78,11 @@ describe("Set up should work", function() {
       done()
     })
   })
+});
+
+describe("There should be a route that returns all of the current routes", function(){
+  routeCode("/routes");
+  socketReturn("routes");
 });
 
 describe("Only configured routes should return 200 code (express)", function() {
