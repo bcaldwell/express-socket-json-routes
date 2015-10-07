@@ -22,7 +22,7 @@ var socket = require('socket.io');
 var jsonRoutes = require('express-socket-json-routes');
 
 var app = express();
-var server = require('http').Server(app);
+var server = require("http").Server(app);
 var io = socket(server);
 
 //json configuration object for route creation
@@ -48,7 +48,7 @@ jsonRoutes (routes, express);
 //create only socket routes
 jsonRoutes (routes, io);
 
-//use as expres middleware
+//use as express middleware
 app.use ('/api', jsonRoutes)
 ```
 
@@ -57,24 +57,40 @@ app.use ('/api', jsonRoutes)
 ```javascript
 var config = {
   baseUri: 'base uri for all routes. All routes are extended off of the base',
-  expressUri: 'base uri for only express rest routes',
-  restUri: 'same as expressUri',
-  socketUri: 'base uri for only socket real time routes',
+  express: {
+    enabled: 'Boolean if express is enabled',
+    router: 'forces module to return express router',
+    uri: 'base uri for only express rest routes'
+  }
+  socket: {
+    enabled: 'Boolean if sockets is enabled',
+    uri: 'base uri for only socket rest routes',
+    appendHttpMethod: 'determines if http method is appended to socket route',
+    //example: get('/demo') socket route => demo/get
+    responseCallback: 'determines if reply is done through socket callback',
+    responseEmit: 'determines if reply is done through emit on socket',
+    headerBody: 'determines if the socket data has http style head and body or just data'
+  }
   //vars object is passed to every callback function as req.vars
   vars: {
     testvar: 'hello'
   },
   routesListRoute: 'route that contains all of the express and socket routes created. The default is /routes'
-  routes: [
-    {
-      type: "get",  //requestion type. Ex: 'get', 'put', 'post', 'all'
-      uri: "test",  // uri of the route
-      //callback handler
-      handler: function (req, res){
-        res.send ('hello');
-      },
+  routes: [{
+    HttpMethod: "get", //http method to be used Ex: 'get', 'put', 'post', 'all'
+    uri: "test", // uri of the route
+    //callback handler
+    handler: function(req, res) {
+      console.log(req.vars.testvar) //'hello'
+      res.send('hello');
+    },
+    express: {
       middleware: [] //middleware for express
+    },
+    socket: { //overwrite globals
+      responseCallback: 'determines if reply is done through socket callback',
+      responseEmit: 'determines if reply is done through emit on socket'
     }
-  ]
+  }]
 };
 ```

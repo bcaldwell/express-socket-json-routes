@@ -5,10 +5,30 @@
 
 var _ = require("lodash");
 var util = require("util");
+var debug = require('debug')('express-socket-json-routes');
+
 module.exports = function(config, appPassed, socketPassed) {
+
+  debug ("Starting up with new configuration");
+
+  //make sure config object was passed in
+  if (!_.isObject(config)) {
+    debug("No configuration json passed in");
+    console.error("Express-socket-json-route: No configuration json passed in");
+    return false;
+  }
 
   var app = null,
     io = null;
+  var settings = {
+    express: config.express || {},
+    socket: config.socket || {
+      appendHttpMethod: true,
+      responseCallback: true,
+      responseEmit: true,
+      headerBody: false
+    }
+  };
 
   if (instanceofExpress(appPassed)) {
     app = appPassed;
@@ -18,9 +38,9 @@ module.exports = function(config, appPassed, socketPassed) {
   }
 
   var mode = {
-    express: true,
-    socket: Boolean(io),
-    middleware: !Boolean(app)
+    express: settings.express.enabled || true,
+    socket: settings.socket.enabled || Boolean(io),
+    router: settings.express.enabled || !Boolean(app)
   };
 
   if (process.env.NODE_ENV === "test") {
@@ -29,13 +49,12 @@ module.exports = function(config, appPassed, socketPassed) {
     this.mode = mode;
   }
 
-  //make sure config object was passed in
-  if (!_.isObject(config)) {
-    console.log("Express-socket-json-route: No configuration json passed in");
-    return false;
-  }
+  debug("Express is " + mode.express);
+  debug("Socket is " + mode.socket);
+  debug("Express is returning a router " + mode.router);
+
   //check if app and socket exist
-  if (mode.middleware) {
+  if (mode.router) {
     var express = require("express");
     app = express.Router();
   }
@@ -87,8 +106,11 @@ module.exports = function(config, appPassed, socketPassed) {
 
         io.on("connection", function(socket) {
           routeList.socket.indexOf(socketUri) < 0? routeList.socket.push(socketUri):null;
+          route.socket = route.socket || {};
+          var options = _.defaults(_.pick(route.socket,["responseCallback", "responseEmit"]), _.pick(settings.socket,["responseCallback", "responseEmit"]));
 
-          socket.on(socketUri, function(data) {
+          socket.on(socketUri, function(data, cb) {
+            cb = cb || null;
             route.handler({
               socket: socket,
               routeType: "socket",
@@ -96,33 +118,37 @@ module.exports = function(config, appPassed, socketPassed) {
               expressRoute: false,
               baseUrl: socketUri,
               body: data,
-              originalUrl: socketUri
+              originalUrl: socketUri,
+              vars: vars
             }, {
               send: function(data) {
-                socketSend(socket, socketUri, data);
+                socketSend(socket, socketUri, data, cb, options);
               },
               json: function(data) {
-                data.contentType = "JSON";
-                socketSend(socket, socketUri, data);
+                //data.contentType = "JSON";
+                socketSend(socket, socketUri, data, cb, options);
               },
               render: function(data) {
-                socketSend(socket, socketUri, data);
+                socketSend(socket, socketUri, data, cb, options);
               },
               end: function() {},
               sendFile: function() {
                 unsupportedMethod("sendFile");
-                socketSend(socket, socketUri, {});
+                socketSend(socket, socketUri, {}, cb, options);
               },
               redirect: function() {
                 unsupportedMethod("redirect");
-                socketSend(socket, socketUri, {});
+                socketSend(socket, socketUri, {}, cb, options);
               }
             });
           });
           //create route to view current routes
           if (routeList.socket.length === routesKeys.length) {
-            socket.on((config.routesListRoute ? config.routesListRoute : "routes"), function() {
-              socketSend(socket, "routes", routeList);
+            var options =  _.pick(settings.socket,["responseCallback", "responseEmit"]);
+            var routesRoute = config.routesListRoute ? config.routesListRoute : "routes";
+            socket.on(routesRoute, function(data, cb) {
+              cb = cb || null;
+              socketSend(socket, routesRoute, data, cb, options);
             });
           }
         });
@@ -132,12 +158,12 @@ module.exports = function(config, appPassed, socketPassed) {
       res.json(routeList);
     });
   } else {
-    console.log("Express-socket-json-route: No routes were passed in");
+    console.error("Express-socket-json-route: No routes were passed in");
     return false;
   }
 
 
-  if (mode.middleware) {
+  if (mode.router) {
     return app;
   }
   return true;
@@ -152,13 +178,19 @@ var instanceofSocket = function(io) {
   return Boolean(io) && Boolean(io.on) && Boolean(io.serveClient) && Boolean(io.attach);
 };
 
-var socketSend = function(socket, uri, data) {
-  //console.log("sending: " + data);
+var socketSend = function(socket, uri, data, socketCb, options){
+  options.responseCallback && socketCb? socketCb(data):null;
+  options.responseEmit? socketEmit (socket, uri, data): null;
+};
+
+var socketEmit = function(socket, uri, data) {
+  debug("sending: " + JSON.stringify(data) + " to " + socket.id + " requested from uri " + uri);
   socket.emit(uri, data);
 };
 
 var unsupportedMethod = function(method) {
-  console.log("Express-socket-json-route: Method \"" + method + "\"is not supported");
+  debug ("unsuported method %s was called", method);
+  console.error("Express-socket-json-route: Method \"" + method + "\"is not supported. Method should be wrapped in a check");
 };
 
 var sanitizeRoute = function(route) {
