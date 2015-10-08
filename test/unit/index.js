@@ -99,3 +99,12 @@ describe("Only configured routes should return 200 code (socket)", function() {
   socketReturn("sendfile");
   socketReturn("google");
 });
+
+describe("Socket should have a callback mode", function(){
+  it("test/get", function(done) {
+    client.emit("test/get", {}, function(data) {
+      data.should.exist;
+      done();
+    });
+  });
+});
