@@ -1,0 +1,40 @@
+var config = {
+  baseUri: 'base uri for all routes. All routes are extended off of the base',
+  express: {
+    enabled: 'Boolean if express is enabled',
+    router: 'forces module to return express router',
+    uri: 'base uri for only express rest routes'
+  },
+  socket: {
+    enabled: 'Boolean if sockets is enabled',
+    uri: 'base uri for only socket rest routes',
+    appendHttpMethod: 'determines if http method is appended to socket route',
+    //example: get('/demo') socket route => demo/get
+    responseCallback: 'determines if reply is done through socket callback',
+    responseEmit: 'determines if reply is done through emit on socket',
+    headerBody: 'determines if the socket data has http style head and body or just data'
+  },
+  //vars object is passed to every callback function as req.vars
+  vars: {
+    testvar: 'hello'
+  },
+  routesListRoute: 'route that contains all of the express and socket routes created. The default is /routes',
+  routes: [{
+    HttpMethod: "get", //http method to be used Ex: 'get', 'put', 'post', 'all'
+    uri: "test", // uri of the route
+    //callback handler
+    handler: function(req, res) {
+      console.log(req.vars.testvar); //'hello'
+      res.send('hello');
+    },
+    express: {
+      middleware: [] //middleware for express
+    },
+    socket: { //overwrite globals
+      responseCallback: 'determines if reply is done through socket callback',
+      responseEmit: 'determines if reply is done through emit on socket'
+    }
+  }]
+};
+
+return config;

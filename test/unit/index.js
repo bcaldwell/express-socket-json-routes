@@ -21,10 +21,8 @@ app.engine('html', require('ejs').renderFile);
 
 routes(test1, app, io);
 
-//if (!module.parent) {
 server.listen(3000);
 console.log("Express started on port 3000");
-//}
 //////////////////////////////////////////////////
 
 var clients = [];

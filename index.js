@@ -1,18 +1,39 @@
 //TODO
 // - socket.io middleware mode
 // - socket.io res, req objects
-// - Method to get array of routes
 
 var _ = require("lodash");
-var util = require("util");
 var debug = require('debug')('express-socket-json-routes');
+var h = require("./helpers");
+
+var socketSend = function(socket, uri, data, socketCb, options) {
+  if (options.responseCallback && socketCb) socketCb(data);
+  if (options.responseEmit) socketEmit(socket, uri, data);
+};
+
+var socketEmit = function(socket, uri, data) {
+  debug("sending: " + JSON.stringify(data) + " to " + socket.id + " requested from uri " + uri);
+  socket.emit(uri, data);
+};
+
+var unsupportedMethod = function(method) {
+  debug("unsuported method %s was called", method);
+  console.error("Express-socket-json-route: Method \"" + method + "\"is not supported. Method should be wrapped in a check");
+};
+
+var sanitizeRoute = function(route) {
+  if (route && route[0] && route[0] === "/") {
+    return route.substr(1);
+  }
+  return route;
+};
 
 module.exports = function(config, appPassed, socketPassed) {
 
-  debug ("Starting up with new configuration");
+  debug("Starting up with new configuration");
 
   //make sure config object was passed in
-  if (!_.isObject(config)) {
+  if (!h.isObject(config)) {
     debug("No configuration json passed in");
     console.error("Express-socket-json-route: No configuration json passed in");
     return false;
@@ -30,10 +51,10 @@ module.exports = function(config, appPassed, socketPassed) {
     }
   };
 
-  if (instanceofExpress(appPassed)) {
+  if (h.instanceofExpress(appPassed)) {
     app = appPassed;
   }
-  if (instanceofSocket(socketPassed) || instanceofSocket(appPassed)) {
+  if (h.instanceofSocket(socketPassed) || h.instanceofSocket(appPassed)) {
     io = socketPassed;
   }
 
@@ -61,13 +82,13 @@ module.exports = function(config, appPassed, socketPassed) {
   //create global vars var
   var vars = config.vars ? config.vars : {};
 
-  if (_.isArray(config.routes)) {
+  if (h.isArray(config.routes)) {
     //create base uri
     var baseUri = {};
-    baseUri.base = (config.baseUrl ? config.baseUrl : "");
+    baseUri.base = config.baseUrl || "";
     baseUri.base = sanitizeRoute(baseUri.base);
-    baseUri.express = (config.expressUri ? config.expressUri : (config.restUri ? config.restUri : baseUri.base));
-    baseUri.socket = (config.socketUri ? config.expressUri : baseUri.base);
+    baseUri.express = config.expressUri ? config.expressUri : (config.restUri ? config.restUri : baseUri.base);
+    baseUri.socket = config.socketUri ? config.expressUri : baseUri.base;
     baseUri.express = sanitizeRoute(baseUri.express);
     baseUri.socket = sanitizeRoute(baseUri.socket);
 
@@ -77,83 +98,86 @@ module.exports = function(config, appPassed, socketPassed) {
     };
 
     var routesKeys = Object.keys(config.routes);
-    _.each(config.routes, function(route) {
-      var type = route.type.toLowerCase();
-      //create base uri, it should not start with a "/"
-      var expressUri = route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri);
-      expressUri = sanitizeRoute(expressUri);
+    for (var i in config.routes) {
+      var route = config.routes[i];
+      (function scope(route) {
+        var type = route.type.toLowerCase();
+        //create base uri, it should not start with a "/"
+        var expressUri = route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri);
+        expressUri = sanitizeRoute(expressUri);
 
-      // append base url to the expressUri
-      expressUri = (baseUri.express ? "/" + baseUri.express : "") + "/" + expressUri;
+        // append base url to the expressUri
+        expressUri = (baseUri.express ? "/" + baseUri.express : "") + "/" + expressUri;
 
-      if (mode.express) {
-        if (route.middleware) {
-          app[type](expressUri, route.middleware, function(req, res) {
-            req.vars = vars;
-            route.handler(req, res);
-          });
-        } else {
-          app[type](expressUri, route.handler);
-        }
-      }
-
-      routeList.express.push(expressUri);
-
-      if (mode.socket) {
-        //socketUri: baseuri/ + uri/ + route type
-        var socketUri = sanitizeRoute(route.socketUri ? route.socketUri : route.uri + (type !== "all" ? "/" + type : ""));
-        socketUri = (baseUri.socket ? baseUri.socket + "/" : "") + socketUri;
-
-        io.on("connection", function(socket) {
-          routeList.socket.indexOf(socketUri) < 0? routeList.socket.push(socketUri):null;
-          route.socket = route.socket || {};
-          var options = _.defaults(_.pick(route.socket,["responseCallback", "responseEmit"]), _.pick(settings.socket,["responseCallback", "responseEmit"]));
-
-          socket.on(socketUri, function(data, cb) {
-            cb = cb || null;
-            route.handler({
-              socket: socket,
-              routeType: "socket",
-              socketRoute: true,
-              expressRoute: false,
-              baseUrl: socketUri,
-              body: data,
-              originalUrl: socketUri,
-              vars: vars
-            }, {
-              send: function(data) {
-                socketSend(socket, socketUri, data, cb, options);
-              },
-              json: function(data) {
-                //data.contentType = "JSON";
-                socketSend(socket, socketUri, data, cb, options);
-              },
-              render: function(data) {
-                socketSend(socket, socketUri, data, cb, options);
-              },
-              end: function() {},
-              sendFile: function() {
-                unsupportedMethod("sendFile");
-                socketSend(socket, socketUri, {}, cb, options);
-              },
-              redirect: function() {
-                unsupportedMethod("redirect");
-                socketSend(socket, socketUri, {}, cb, options);
-              }
+        if (mode.express) {
+          if (route.middleware) {
+            app[type](expressUri, route.middleware, function(req, res) {
+              req.vars = vars;
+              route.handler(req, res);
             });
-          });
-          //create route to view current routes
-          if (routeList.socket.length === routesKeys.length) {
-            var options =  _.pick(settings.socket,["responseCallback", "responseEmit"]);
-            var routesRoute = config.routesListRoute ? config.routesListRoute : "routes";
-            socket.on(routesRoute, function(data, cb) {
-              cb = cb || null;
-              socketSend(socket, routesRoute, data, cb, options);
-            });
+          } else {
+            app[type](expressUri, route.handler);
           }
-        });
-      }
-    });
+        }
+
+        routeList.express.push(expressUri);
+
+        if (mode.socket) {
+          //socketUri: baseuri/ + uri/ + route type
+          var socketUri = sanitizeRoute(route.socketUri ? route.socketUri : route.uri + (type !== "all" ? "/" + type : ""));
+          socketUri = (baseUri.socket ? baseUri.socket + "/" : "") + socketUri;
+
+          io.on("connection", function(socket) {
+            if (routeList.socket.indexOf(socketUri) < 0) routeList.socket.push(socketUri);
+            route.socket = route.socket || {};
+            var options = _.defaults(_.pick(route.socket, ["responseCallback", "responseEmit"]), _.pick(settings.socket, ["responseCallback", "responseEmit"]));
+
+            socket.on(socketUri, function(data, cb) {
+              cb = cb || null;
+              route.handler({
+                socket: socket,
+                routeType: "socket",
+                socketRoute: true,
+                expressRoute: false,
+                baseUrl: socketUri,
+                body: data,
+                originalUrl: socketUri,
+                vars: vars
+              }, {
+                send: function(data) {
+                  socketSend(socket, socketUri, data, cb, options);
+                },
+                json: function(data) {
+                  //data.contentType = "JSON";
+                  socketSend(socket, socketUri, data, cb, options);
+                },
+                render: function(data) {
+                  socketSend(socket, socketUri, data, cb, options);
+                },
+                end: function() {},
+                sendFile: function() {
+                  unsupportedMethod("sendFile");
+                  socketSend(socket, socketUri, {}, cb, options);
+                },
+                redirect: function() {
+                  unsupportedMethod("redirect");
+                  socketSend(socket, socketUri, {}, cb, options);
+                }
+              });
+            });
+            //create route to view current routes
+            if (routeList.socket.length === routesKeys.length) {
+              options = _.pick(settings.socket, ["responseCallback", "responseEmit"]);
+              var routesRoute = config.routesListRoute ? config.routesListRoute : "routes";
+              socket.on(routesRoute, function(data, cb) {
+                cb = cb || null;
+                socketSend(socket, routesRoute, data, cb, options);
+              });
+            }
+          });
+        }
+      })(route)
+    };
     app.get("/" + (config.routesListRoute ? sanitizeRoute(config.routesListRoute) : "routes"), function(req, res) {
       res.json(routeList);
     });
@@ -167,35 +191,4 @@ module.exports = function(config, appPassed, socketPassed) {
     return app;
   }
   return true;
-};
-
-var instanceofExpress = function(app) {
-  //check for var/ functions that express apps/routers should have
-  return Boolean(app) && Boolean(app.get) && Boolean(app.post) && Boolean(app.put) && Boolean(app.route) && Boolean(app.all) && Boolean(app.param);
-};
-
-var instanceofSocket = function(io) {
-  return Boolean(io) && Boolean(io.on) && Boolean(io.serveClient) && Boolean(io.attach);
-};
-
-var socketSend = function(socket, uri, data, socketCb, options){
-  options.responseCallback && socketCb? socketCb(data):null;
-  options.responseEmit? socketEmit (socket, uri, data): null;
-};
-
-var socketEmit = function(socket, uri, data) {
-  debug("sending: " + JSON.stringify(data) + " to " + socket.id + " requested from uri " + uri);
-  socket.emit(uri, data);
-};
-
-var unsupportedMethod = function(method) {
-  debug ("unsuported method %s was called", method);
-  console.error("Express-socket-json-route: Method \"" + method + "\"is not supported. Method should be wrapped in a check");
-};
-
-var sanitizeRoute = function(route) {
-  if (route && route[0] && route[0] === "/"){
-    return route.substr(1);
-  }
-  return route;
 };
