@@ -82,7 +82,7 @@ var config = {
 ##License
 The MIT License ([MIT](LICENSE))
 
-Copyright (c) 2016 Benjamin Caldwell
+Copyright (c) 2015 Benjamin Caldwell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
