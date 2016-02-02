@@ -64,7 +64,9 @@ module.exports = function(config, appPassed, socketPassed) {
     router: settings.express.enabled || !Boolean(app)
   };
 
-  if (process.env.NODE_ENV === "test") {
+  console.log (process.env.NODE_ENV);
+  console.log (Boolean (process.env.NODE_ENV === "test"))
+  if (process.env.NODE_ENV == "test") {
     this.app = app;
     this.io = io;
     this.mode = mode;
@@ -80,15 +82,15 @@ module.exports = function(config, appPassed, socketPassed) {
     app = express.Router();
   }
   //create global vars var
-  var vars = config.vars ? config.vars : {};
+  var vars = config.vars || {};
 
   if (h.isArray(config.routes)) {
     //create base uri
     var baseUri = {};
     baseUri.base = config.baseUrl || "";
     baseUri.base = sanitizeRoute(baseUri.base);
-    baseUri.express = config.expressUri ? config.expressUri : (config.restUri ? config.restUri : baseUri.base);
-    baseUri.socket = config.socketUri ? config.expressUri : baseUri.base;
+    baseUri.express = config.expressUri || config.restUri || baseUri.base;
+    baseUri.socket = config.socketUri || baseUri.base;
     baseUri.express = sanitizeRoute(baseUri.express);
     baseUri.socket = sanitizeRoute(baseUri.socket);
 
@@ -103,7 +105,7 @@ module.exports = function(config, appPassed, socketPassed) {
       (function scope(route) {
         var type = route.type.toLowerCase();
         //create base uri, it should not start with a "/"
-        var expressUri = route.expressUri ? route.expressUri : (route.restUri ? route.restUri : route.uri);
+        var expressUri = route.expressUri || route.restUri || route.uri;
         expressUri = sanitizeRoute(expressUri);
 
         // append base url to the expressUri
@@ -168,7 +170,7 @@ module.exports = function(config, appPassed, socketPassed) {
             //create route to view current routes
             if (routeList.socket.length === routesKeys.length) {
               options = _.pick(settings.socket, ["responseCallback", "responseEmit"]);
-              var routesRoute = config.routesListRoute ? config.routesListRoute : "routes";
+              var routesRoute = config.routesListRoute || "routes";
               socket.on(routesRoute, function(data, cb) {
                 cb = cb || null;
                 socketSend(socket, routesRoute, data, cb, options);

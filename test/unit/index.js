@@ -8,7 +8,7 @@ var utilities = require("./utilities.js");
 //server setup stuff
 var routes = require("../../index.js");
 
-var test1 = require("./testconfigs/test1.js");
+var test1 = require("../assets/testconfigs/test1.js");
 
 var express = require("express");
 var socket = require("socket.io");
